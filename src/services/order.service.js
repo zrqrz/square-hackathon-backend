@@ -122,7 +122,34 @@ const parseDate = (timestamp) => {
     };
 }
 
+const getMonthlyProductSalesReport = async (curMonth) => {
+    const orders = await Order.find();
+    let map = new Map();
+    for (let order of orders) {
+        // const {year, month, day, hour}  = parseDate(order.createdAt);
+        const {month}  = parseDate(order.createdAt);
+        if (month == curMonth) {
+            const productName = order.name;
+            const quantity = parseInt(order.quantity, 10);
+            if (map.has(productName)) {
+                map.set(productName, map.get(productName) + quantity);
+            }else {
+                map.set(productName, quantity);
+            }
+        }
+    }
+    return map;
+}
+
+const getMonthlyTop5 = async (month) => {
+    const map = await getMonthlyProductSalesReport(month);
+    const sortedEntries = [...map.entries()].sort((a, b) => b[1] - a[1]);
+    const top5Entries = sortedEntries.slice(0, 5);
+    return top5Entries;
+}
+
 module.exports = {
     saveOrder,
     getSalesReport,
+    getMonthlyTop5,
 }
